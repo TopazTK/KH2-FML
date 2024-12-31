@@ -17,7 +17,7 @@ namespace KH2FML
         [DllImport("kernel32.dll")]
         static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
 
-        static IntPtr Handle;
+        public static IntPtr Handle;
         public static Process Process;
         public static ulong PureAddress;
         public static ulong MemoryOffset;
@@ -148,6 +148,8 @@ namespace KH2FML
             if (!Absolute)
                 _address = (IntPtr)(PureAddress + Address);
 
+            UnlockBlock(Address, Absolute: Absolute);
+
             var _dynoMethod = new DynamicMethod("SizeOfType", typeof(int), []);
             ILGenerator _ilGen = _dynoMethod.GetILGenerator();
 
@@ -189,6 +191,8 @@ namespace KH2FML
 
             if (!Absolute)
                 _address = (IntPtr)(PureAddress + Address);
+
+            UnlockBlock(Address, Absolute: Absolute);
 
             var _dynoMethod = new DynamicMethod("SizeOfType", typeof(int), []);
             ILGenerator _ilGen = _dynoMethod.GetILGenerator();
@@ -242,6 +246,8 @@ namespace KH2FML
             if (Absolute)
                 _address = (IntPtr)(Address);
 
+            UnlockBlock(Address, Absolute: Absolute);
+
             int _inWrite = 0;
 
             var _stringArray = Encoding.Default.GetBytes(Value);
@@ -261,17 +267,17 @@ namespace KH2FML
         /// <param name="Offsets">All the offsets of the pointer, null by default.</param>
         /// <param name="Absolute">If the address is absolute, false by default.</param>
         /// <returns>The final calculated pointer.</returns>
-        public static ulong GetPointer64(ulong Address, uint[] Offsets = null, bool Absolute = false)
+        public static ulong GetPointer64(ulong Address, int[] Offsets = null, bool Absolute = false)
         {
-            var _returnPoint = Read<ulong>(Address, Absolute);
+            var _returnPoint = Read<long>(Address, Absolute);
 
             if (Offsets == null)
-                return _returnPoint;
+                return (ulong)_returnPoint;
 
             for (int i = 0; i < Offsets.Length - 1; i++)
-                _returnPoint = Read<ulong>(_returnPoint + Offsets[i], true);
+                _returnPoint = Read<long>((ulong)(_returnPoint + Offsets[i]), true);
 
-            return _returnPoint + Offsets.Last();
+            return (ulong)(_returnPoint + Offsets.Last());
         }
 
         /// <summary>
@@ -391,7 +397,7 @@ namespace KH2FML
         /// </summary>
         /// <param name="Address">The address of the subject block.</param>
         /// <param name="Absolute">If the address is absolute, false by default.</param>
-        public static void UnlockBlock(ulong Address, bool Absolute = false)
+        public static void UnlockBlock(ulong Address, int Size = 0x100000, bool Absolute = false)
         {
             var _address = (IntPtr)Address;
 
@@ -399,7 +405,7 @@ namespace KH2FML
                 _address = (IntPtr)(PureAddress + Address);
 
             int _oldProtect = 0;
-            VirtualProtectEx(Handle, _address, 0x100000, 0x40, ref _oldProtect);
+            VirtualProtectEx(Handle, _address, Size, 0x40, ref _oldProtect);
         }
     }
 }

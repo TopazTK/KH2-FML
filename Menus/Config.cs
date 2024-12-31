@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
+
 namespace KH2FML
 {
     public class Config
@@ -59,17 +60,20 @@ namespace KH2FML
         public Config()
         {
             var _entFieldCam = new Entry(2, 0xB717, [0xB71E, 0xB71F], [0xB720, 0xB721]);
+            var _entRightStick = new Entry(2, 0xB718, [0xB722, 0xB723], [0xB724, 0xB725]);
             var _entCameraV = new Entry(2, 0xC2F5, [0xC2F8, 0xC2F9], [0xC2FA, 0xC2FB]);
             var _entCameraH = new Entry(2, 0xC2F6, [0xC2FC, 0xC2FD], [0xC2FE, 0xC2FF]);
             var _entSummonFX = new Entry(3, 0xC2F7, [0xC302, 0xC300, 0xC301], [0xC305, 0xC303, 0xC304]);
             var _entNavigation = new Entry(2, 0xB719, [0xB726, 0xB727], [0xB728, 0xB729]);
-            var _entVibration = new Entry(2, 0xB71A, [0xB72A, 0xB752], [0xB72C, 0xB72D]);
+            var _entVibration = new Entry(2, 0xB71A, [0xB72A, 0xB752], [0xB72C, 0xB72D]); 
             var _entCommandKH2 = new Entry(2, 0xB71C, [0xB734, 0xB735], [0xB736, 0xB737]);
             var _entDifficulty = new Entry(1, 0xB71D, [0xB738, 0xB739, 0xB73A, 0xCE30], [0xB73B, 0xB73C, 0xB73D, 0xCE31]);
+
 
             Children = new ObservableCollection<Entry>()
             {
                 _entFieldCam,
+                _entRightStick,
                 _entCameraV,
                 _entCameraH,
                 _entSummonFX,
@@ -85,6 +89,7 @@ namespace KH2FML
         }
         public void Submit(object? sender = null, NotifyCollectionChangedEventArgs e = null)
         {
+
             for (int i = 0; i < Children.Count; i++)
             {
                 var _childExport = Children[i].Export();
@@ -152,7 +157,7 @@ namespace KH2FML
             Hypervisor.Write(Variables.HFIX_ConfigOffsets[1] + 0x325 + 0x02, _pageFlag);
             Hypervisor.Write(Variables.HFIX_ConfigOffsets[5] + 0x2EF + 0x02, _pageFlag);
 
-            Hypervisor.Write<byte>(0x365545, 0x00);
+            Hypervisor.Write<byte>(Variables.HFIX_ConfigOffsets[6] + 0xE5, 0x00);
         }
     }
 }

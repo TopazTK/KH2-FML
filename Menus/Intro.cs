@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
+
 namespace KH2FML
 {
     public class Intro
@@ -63,15 +64,11 @@ namespace KH2FML
         {
             var _entDifficulty = new Entry(4, 0xC330, 0xC380, [0xC331, 0xC332, 0xC333, 0xCE33], [0xC334, 0xC335, 0xC336, 0xCE34]);
             var _entVibration = new Entry(2, 0xC337, 0xC381, [0xC338, 0xC339], [0xC33A, 0xC33B]);
-            var _entAutosave = new Entry(3, 0x0133, 0x0000, [0x0105, 0x0107, 0x0109], [0x0106, 0x0108, 0x010A]);
-            var _entController = new Entry(2, 0x0137, 0x0000, [0x0123, 0x0125], [0x0124, 0x0126]);
 
             Children = new ObservableCollection<Entry>()
             {
                 _entDifficulty,
                 _entVibration,
-                _entAutosave,
-                _entController,
             };
 
             Children.CollectionChanged += Submit;
@@ -125,7 +122,6 @@ namespace KH2FML
 
             Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[6] + 0x09, 0x820500);
             Hypervisor.RedirectCMP(Variables.HFIX_IntroOffsets[6] + 0x17, 0x820504);
-
         }
     }
 }
