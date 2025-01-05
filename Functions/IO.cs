@@ -1,10 +1,12 @@
-﻿using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
+﻿using Binarysharp.MSharp.Native;
+using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
 
 namespace KH2FML
 {
     public static class IO
     {
         public static nint FUNC_FINDFILE;
+        public static nint FUNC_AREAALLOC;
         public static nint FUNC_OBJENTRYGET;
         public static nint FUNC_GETFILESIZE;
         public static nint FUNC_FREETASKMGR;
@@ -37,6 +39,27 @@ namespace KH2FML
             {
                 Variables.SharpHook[FUNC_FREETASKMGR].ExecuteJMP(BSharpConvention.MicrosoftX64, _taskActual);
                 Hypervisor.Write<ulong>(Variables.ADDR_TaskManager, 0x00);
+            }
+        }
+
+        /// <summary>
+        /// Allocates memory for any purpose.
+        /// Do note that this allocation is reset on room transitions.
+        /// </summary>
+        /// <param name="Size">The size of memory to allocate.</param>
+        /// <returns>The location of allocated memory.</returns>
+        public static ulong AllocateMemory(int Size)
+        {
+            var _checkBuff = Hypervisor.Read<int>(0xBF33C0);
+
+            if (_checkBuff == 0x01524142)
+                return Hypervisor.MemoryOffset + (uint)Variables.SharpHook[FUNC_AREAALLOC].Execute<long>(Size);
+
+            else
+            {
+                var _checkPoint = Hypervisor.Read<ulong>(0xBF33C0);
+                var _getMask = _checkPoint & 0xFFFF00000000;
+                return _getMask + (uint)Variables.SharpHook[FUNC_AREAALLOC].Execute<int>(Size);
             }
         }
 

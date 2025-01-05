@@ -1,10 +1,5 @@
 ﻿using Binarysharp.MSharp;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KH2FML
 {
@@ -34,6 +29,7 @@ namespace KH2FML
             System.FUNC_GETNUMBACKYARD = Hypervisor.FindSignature(Variables.SIGN_GetNumberBackyard);
 
             IO.FUNC_FINDFILE = Hypervisor.FindSignature(Variables.SIGN_FindFile);
+            IO.FUNC_AREAALLOC = Hypervisor.FindSignature(Variables.SIGN_AreaAlloc);
             IO.FUNC_GETFILESIZE = Hypervisor.FindSignature(Variables.SIGN_GetFileSize);
             IO.FUNC_OBJENTRYGET = Hypervisor.FindSignature(Variables.SIGN_ObjentryGet);
             IO.FUNC_FREETASKMGR = Hypervisor.FindSignature(Variables.SIGN_TaskManagerFree);
