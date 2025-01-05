@@ -27,7 +27,7 @@ namespace KH2FML
         /// If a continuous sound is played, it cannot be stopped.
         /// </summary>
         /// <param name="SoundID">The ID of the sound to be played.</param>
-        public static void PlaySFX(int SoundID) => Variables.SharpHook[FUNC_PLAYSFX].Execute(BSharpConvention.MicrosoftX64, SoundID, 1);
+        public static void PlaySFX(int SoundID) => Variables.SharpHook[FUNC_PLAYSFX].Execute(SoundID);
 
         /// <summary>
         /// Immediately kills the Background Music.
