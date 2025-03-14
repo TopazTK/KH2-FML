@@ -13,7 +13,7 @@ namespace KH2FML
         /// </summary>
         /// <param name="PAX">The absolute memory location of the pointer to PAX file.</param>
         /// <param name="EffectID">The ID of the effect to play.</param>
-        public static void PlayFromPAX(long PAX, int EffectID) => Variables.SharpHook[FUNC_PAXSTART].Execute(BSharpConvention.MicrosoftX64, PAX, EffectID, 1, 0, 0);
+        public static void PlayFromPAX(ulong PAX, int EffectID) => Variables.SharpHook[FUNC_PAXSTART].Execute(BSharpConvention.MicrosoftX64, PAX, EffectID, 1, 0, 0);
 
         /// <summary>
         /// Kills every effect that belong to the given PAX that's currently playing.

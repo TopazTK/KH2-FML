@@ -3,9 +3,11 @@
 
 namespace KH2FML
 {
-    public class System
+    public class Shisutemu
     {
         public static nint FUNC_MAPJUMP;
+        public static nint FUNC_RECOVER;
+        public static nint FUNC_OBJENTRYGET;
         public static nint FUNC_GIVEBACKYARD;
         public static nint FUNC_ITEMTABLEGET;
         public static nint FUNC_ITEMPARAMGET;
@@ -20,13 +22,8 @@ namespace KH2FML
         /// <returns>The absolute memory location of the item information, "0x00" if not found.</returns>
         public static ulong FetchItem(short ItemID)
         {
-            var _fetchItem = Variables.SharpHook[FUNC_ITEMTABLEGET].Execute(ItemID);
-
-            if (_fetchItem == IntPtr.Zero)
-                return 0x00;
-
-            else
-                return Hypervisor.MemoryOffset + (ulong)_fetchItem;
+            var _fetchItem = Variables.SharpHook[FUNC_ITEMTABLEGET].Execute<ulong>(ItemID);
+            return _fetchItem != 0x00 ? _fetchItem : 0x00;
         }
 
         /// <summary>
@@ -38,13 +35,9 @@ namespace KH2FML
         public static ulong FetchItemParams(short ItemID)
         {
             var _fetchItem = FetchItem(ItemID);
-            var _fetchParams = Variables.SharpHook[FUNC_ITEMPARAMGET].Execute((long)_fetchItem);
+            var _fetchParams = Variables.SharpHook[FUNC_ITEMPARAMGET].Execute<ulong>(_fetchItem);
 
-            if (_fetchParams == IntPtr.Zero)
-                return 0x00;
-
-            else
-                return Hypervisor.MemoryOffset + (ulong)_fetchParams;
+            return _fetchParams != 0x00 ? _fetchParams : 0x00;
         }
 
         /// <summary>
@@ -71,12 +64,30 @@ namespace KH2FML
         }
 
         /// <summary>
+        /// Fetches the given Object ID from 00objentry.bin! This should mostly eliminate manual labor.
+        /// Could be a bit slow, optimization is advised when using this function.
+        /// </summary>
+        /// <param name="ObjectID">The ID of the Object as it is in 00objentry.bin</param>
+        /// <returns>The absolute memory location of the object in 00objentry.bin, "0x00" if not found.</returns>
+        public static ulong FetchObject(short ObjectID)
+        {
+            var _fetchObject = Variables.SharpHook[FUNC_OBJENTRYGET].Execute<ulong>(ObjectID);
+            return _fetchObject != 0x00 ? _fetchObject : 0x00;
+        }
+
+        /// <summary>
         /// Warps to a given Area, whether it be an event, cutscene, or a room.
         /// Yes, this can indeed be used on ADDR_Area after writing to it.
         /// </summary>
         /// <param name="Area">The absolute memory location of Area Data.</param>
         /// <param name="Fade">The fade to use when warping.</param>
-        public static void ExecuteWarp(long Area, FADE_TYPE Fade) => Variables.SharpHook[FUNC_MAPJUMP].Execute(BSharpConvention.MicrosoftX64, Area, Fade, 0, 0, 0);
+        public static void ExecuteWarp(ulong Area, FADE_TYPE Fade) => Variables.SharpHook[FUNC_MAPJUMP].Execute(BSharpConvention.MicrosoftX64, Hypervisor.PureAddress + Area, (int)Fade, 0, 0, 0);
+
+        /// <summary>
+        /// Recovers all stats of all Party Members that can be recovered with the Save Point.
+        /// </summary>
+        /// <param name="Type">Recovery Type. Still under investigation.</param>
+        public static void Recover(int Type = 0x08) => Variables.SharpHook[FUNC_RECOVER].Execute(Type);
 
         public enum FADE_TYPE : int
         {

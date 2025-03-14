@@ -1,6 +1,6 @@
 ﻿namespace KH2FML
 {
-    internal class Text
+    public static class Text
     {
         public static nint FUNC_MESSAGEGETDATA;
 
@@ -12,12 +12,12 @@
         /// <returns>The fetched string, "FAKE" if not found.</returns>
         public static string GetStringHuman(short StringID)
         {
-            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute(StringID);
+            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute<ulong>(StringID);
 
-            if (_messageOffset == IntPtr.Zero)
+            if (_messageOffset == 0x00)
                 return "FAKE";
 
-            var _messageAbsolute = Hypervisor.MemoryOffset + (ulong)_messageOffset;
+            var _messageAbsolute = _messageOffset;
 
             ulong _readOffset = 0;
             List<byte> _returnList = new List<byte>();
@@ -46,12 +46,12 @@
         /// <returns>The fetched string in KHSCII, "FAKE" if not found.</returns>
         public static byte[] GetStringLiteral(short StringID)
         {
-            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute(StringID);
+            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute<ulong>(StringID);
 
-            if (_messageOffset == IntPtr.Zero)
+            if (_messageOffset == 0x00)
                 return [ 0x33, 0x2E, 0x38, 0x32 ];
 
-            var _messageAbsolute = Hypervisor.MemoryOffset + (ulong)_messageOffset;
+            var _messageAbsolute = _messageOffset;
 
             ulong _readOffset = 0;
             List<byte> _returnList = new List<byte>();
@@ -80,12 +80,8 @@
         /// <returns>The absolute memory location of the fetched string, "0x00" if not found.</returns>
         public static ulong GetStringPointer(short StringID)
         {
-            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute(StringID);
-
-            if (_messageOffset == IntPtr.Zero)
-                return 0x00;
-
-            return Hypervisor.MemoryOffset + (ulong)_messageOffset;
+            var _messageOffset = Variables.SharpHook[FUNC_MESSAGEGETDATA].Execute<ulong>(StringID);
+            return _messageOffset != 0x00 ? _messageOffset : 0x00;
         }
     }
 }

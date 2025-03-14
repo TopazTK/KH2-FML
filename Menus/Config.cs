@@ -1,7 +1,5 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-
 
 namespace KH2FML
 {
@@ -11,19 +9,27 @@ namespace KH2FML
         {
             public ushort Count;
             public ushort Title;
-            public List<ushort> Buttons;
-            public List<ushort> Descriptions;
+            public ObservableCollection<ushort> Buttons;
+            public ObservableCollection<ushort> Descriptions;
 
             public Entry(ushort Count, ushort Title, ushort[] Buttons, ushort[] Descriptions)
             {
                 this.Count = Count;
                 this.Title = Title;
-                this.Buttons = new List<ushort>();
-                this.Descriptions = new List<ushort>();
+                this.Buttons = new ObservableCollection<ushort>();
+                this.Descriptions = new ObservableCollection<ushort>();
 
-                this.Buttons.AddRange(Buttons);
-                this.Descriptions.AddRange(Descriptions);
+                foreach (var _button in Buttons)
+                    this.Buttons.Add(_button);
+
+                foreach (var _description in Descriptions)
+                    this.Descriptions.Add(_description);
+
+                this.Buttons.CollectionChanged += Update;
+                this.Descriptions.CollectionChanged += Update;
             }
+
+            public void Update(object? sender = null, NotifyCollectionChangedEventArgs e = null) => Count = (ushort)(sender as ObservableCollection<ushort>).Count;
 
             public ushort[] Export()
             {
@@ -69,7 +75,6 @@ namespace KH2FML
             var _entCommandKH2 = new Entry(2, 0xB71C, [0xB734, 0xB735], [0xB736, 0xB737]);
             var _entDifficulty = new Entry(1, 0xB71D, [0xB738, 0xB739, 0xB73A, 0xCE30], [0xB73B, 0xB73C, 0xB73D, 0xCE31]);
 
-
             Children = new ObservableCollection<Entry>()
             {
                 _entFieldCam,
@@ -83,6 +88,9 @@ namespace KH2FML
                 _entDifficulty
             };
 
+            if (Variables.MemoryKH["CONFIG_MEMORY"] == 0xDEADBEEF)
+                Variables.MemoryKH.Allocate("CONFIG_MEMORY", 0x100);
+
             Children.CollectionChanged += Submit;
 
             Submit();
@@ -94,7 +102,7 @@ namespace KH2FML
             {
                 var _childExport = Children[i].Export();
                 var _childWrite = _childExport.SelectMany(BitConverter.GetBytes).ToArray();
-                Hypervisor.Write(Variables.ADDR_ConfigMenu + (ulong)(i * 0x14), _childWrite);
+                Hypervisor.Write(Variables.MemoryKH["CONFIG_MEMORY"] + (ulong)(i * 0x14), _childWrite, true);
             }
 
             byte _lastIndex = (byte)(Children.Count - 1);
@@ -108,21 +116,22 @@ namespace KH2FML
                 _countFlag = 0x09;
             }
 
-            var _diffPointer = (0x820004U + 0x14U * _lastIndex);
+            var _menuOffset = (uint) (Variables.MemoryKH["CONFIG_MEMORY"] - Hypervisor.PureAddress);
+            var _diffPointer = (_menuOffset + 0x04 + 0x14U * _lastIndex);
 
             // List Redirectors.
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[0] + 0x031, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[0] + 0x047, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x27B, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x291, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[4] + 0x2C3, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x078, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x0BC, 0x820000);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x1DA, 0x820000);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[0] + 0x031, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[0] + 0x047, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x27B, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x291, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[4] + 0x2C3, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x078, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x0BC, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[5] + 0x1DA, _menuOffset);
 
             // Description Redirectors.
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x323, 0x82000C);
-            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[4] + 0x487, 0x82000C);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[2] + 0x323, _menuOffset + 0x0C);
+            Hypervisor.RedirectLEA(Variables.HFIX_ConfigOffsets[4] + 0x487, _menuOffset + 0x0C);
 
             // Write the count flag.
             Hypervisor.Write(Variables.HFIX_ConfigOffsets[1] + 0x127 + 0x02, _countFlag);
@@ -157,6 +166,8 @@ namespace KH2FML
             Hypervisor.Write(Variables.HFIX_ConfigOffsets[1] + 0x325 + 0x02, _pageFlag);
             Hypervisor.Write(Variables.HFIX_ConfigOffsets[5] + 0x2EF + 0x02, _pageFlag);
 
+            // Prevent the game from updating the entries on menu appear.
+            Hypervisor.Write<byte>(Variables.HFIX_ConfigOffsets[4] + 0x33, [0xE9, 0xDC, 0x00, 0x00, 0x00, 0x90]);
             Hypervisor.Write<byte>(Variables.HFIX_ConfigOffsets[6] + 0xE5, 0x00);
         }
     }

@@ -1,7 +1,5 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-
 
 namespace KH2FML
 {
@@ -12,20 +10,28 @@ namespace KH2FML
             public uint Count;
             public uint Flair;
             public uint Title;
-            public List<uint> Buttons;
-            public List<uint> Descriptions;
+            public ObservableCollection<uint> Buttons;
+            public ObservableCollection<uint> Descriptions;
 
             public Entry(uint Count, uint Flair, uint Title, uint[] Buttons, uint[] Descriptions)
             {
                 this.Count = Count;
                 this.Flair = Flair;
                 this.Title = Title;
-                this.Buttons = new List<uint>();
-                this.Descriptions = new List<uint>();
+                this.Buttons = new ObservableCollection<uint>();
+                this.Descriptions = new ObservableCollection<uint>();
 
-                this.Buttons.AddRange(Buttons);
-                this.Descriptions.AddRange(Descriptions);
+                foreach (var _button in Buttons)
+                    this.Buttons.Add(_button);
+
+                foreach (var _description in Descriptions)
+                    this.Descriptions.Add(_description);
+
+                this.Buttons.CollectionChanged += Update;
+                this.Descriptions.CollectionChanged += Update;
             }
+
+            public void Update(object? sender = null, NotifyCollectionChangedEventArgs e = null) => Count = (uint)(sender as ObservableCollection<uint>).Count;
 
             public uint[] Export()
             {
@@ -71,6 +77,9 @@ namespace KH2FML
                 _entVibration,
             };
 
+            if (Variables.MemoryKH["INTRO_MEMORY"] == 0xDEADBEEF)
+                Variables.MemoryKH.Allocate("INTRO_MEMORY", 0x200);
+
             Children.CollectionChanged += Submit;
 
             Submit();
@@ -83,24 +92,23 @@ namespace KH2FML
                 var _childExport = Children[i].Export();
                 var _childWrite = _childExport.SelectMany(BitConverter.GetBytes).ToArray();
 
-                Hypervisor.Write(Variables.ADDR_IntroMenu + (ulong)(i * 0x2C), _childWrite);
+                Hypervisor.Write(Variables.MemoryKH["INTRO_MEMORY"] + (ulong)(i * 0x2C), _childWrite, true);
             }
 
             byte _lastIndex = (byte)(Children.Count - 1);
+            var _menuOffset = (uint)(Variables.MemoryKH["INTRO_MEMORY"] - Hypervisor.PureAddress);
 
-            // Redirect the menu table.
+            Hypervisor.Write(_menuOffset + 0x100, new byte[0x10]);
 
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x233, 0x820204);
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x253, 0x820200);
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x276, 0x82020C);
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x406, 0x82021C);
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x253, _menuOffset);
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x233, _menuOffset + 0x04);
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x276, _menuOffset + 0x0C);
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x406, _menuOffset + 0x1C);
 
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0AF, 0x820208);
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x1DA, 0x820200);
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x3D7, 0x820200);
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[2] + 0x03D, 0x82021C);
-
-            // Write the counts and the last indexes.
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x1DA, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x3D7, _menuOffset);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0AF, _menuOffset + 0x08);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[2] + 0x03D, _menuOffset + 0x1C);
 
             Hypervisor.Write(Variables.HFIX_IntroOffsets[3] + 0x097, (byte)Children.Count);
             Hypervisor.Write(Variables.HFIX_IntroOffsets[3] + 0x1F5, (byte)Children.Count);
@@ -112,16 +120,14 @@ namespace KH2FML
             Hypervisor.Write(Variables.HFIX_IntroOffsets[2] + 0x031, _lastIndex);
             Hypervisor.Write(Variables.HFIX_IntroOffsets[3] + 0x08E, _lastIndex);
 
-            // Redirect the chosen option memory space.
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x3B5, _menuOffset + 0x100);
 
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x3B5, 0x820500);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0A8, _menuOffset + 0x100);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[4] + 0x1F2, _menuOffset + 0x100);
+            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[5] + 0x2BF, _menuOffset + 0x100);
 
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0A8, 0x820500);
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[4] + 0x1F2, 0x820500);
-            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[5] + 0x2BF, 0x820500);
-
-            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[6] + 0x09, 0x820500);
-            Hypervisor.RedirectCMP(Variables.HFIX_IntroOffsets[6] + 0x17, 0x820504);
+            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[6] + 0x09, _menuOffset + 0x100);
+            Hypervisor.RedirectCMP(Variables.HFIX_IntroOffsets[6] + 0x17, _menuOffset + 0x104);
         }
     }
 }

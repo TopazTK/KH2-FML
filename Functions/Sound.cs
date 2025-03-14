@@ -12,14 +12,17 @@ namespace KH2FML
         /// Plays the given VSB file. "VSB" being an old PS2 term for "Cutscene Sound".
         /// Can be used back-to-back with no reprecussions, no initialization needed.
         /// </summary>
-        /// <param name="VSB">The abolute memory position of the VSB.</param>
-        /// <param name="Size">The size of the VSB file.</param>
+        /// <param name="Input">The name of the VSB.</param>
         /// <param name="Volume">Volume of the sound to play, from 1 - 100.</param>
         /// <param name="Pan">Optional, the pan of the sound to play.</param>
-        public static void PlayVSB(long VSB, int Size, int Volume = 100, int Pan = 0x00)
+        public static void PlayVSB(string Input, int Volume = 100, int Pan = 0x00)
         {
             var _volumeCalc = 0xA3 * Volume;
-            Variables.SharpHook[FUNC_PLAYVSB].ExecuteJMP(BSharpConvention.MicrosoftX64, VSB, Size, _volumeCalc, Pan);
+
+            var _fileSize = IO.GetFileSize(Input);
+            var _fileLoad = IO.LoadFile(Input);
+
+            Variables.SharpHook[FUNC_PLAYVSB].ExecuteJMP(BSharpConvention.MicrosoftX64, _fileLoad, _fileSize, _volumeCalc, Pan);
         }
 
         /// <summary>

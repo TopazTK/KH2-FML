@@ -29,7 +29,7 @@ namespace KH2FML
             if (_isPaused && _menuType == 0x08)
             {
                 Variables.SharpHook[FUNC_SETCAMPWARNING].ExecuteJMP(BSharpConvention.MicrosoftX64, StringID, 0x0000);
-                Variables.SharpHook[FUNC_SHOWCAMPWARNING].Execute((int)Buttons);
+                Variables.SharpHook[FUNC_SHOWCAMPWARNING].Execute(Buttons);
                 Variables.SharpHook[FUNC_SETMENUMODE].Execute(BSharpConvention.MicrosoftX64, 0x04, 0x00);
                 Variables.SharpHook[FUNC_SETMENUMODE + 0x40].Execute();
                 DIALOG_CAMP_ACTIVE = true;

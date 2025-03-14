@@ -1,13 +1,13 @@
-﻿using Binarysharp.MSharp.Native;
-using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
+﻿using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
 
 namespace KH2FML
 {
     public static class IO
     {
-        public static nint FUNC_FINDFILE;
+        public static nint FUNC_FILEREAD;
+        public static nint FUNC_CACHEREADREQ;
+        public static nint FUNC_CACHEFIND;
         public static nint FUNC_AREAALLOC;
-        public static nint FUNC_OBJENTRYGET;
         public static nint FUNC_GETFILESIZE;
         public static nint FUNC_FREETASKMGR;
         public static nint FUNC_CREATETASKMGR;
@@ -18,11 +18,11 @@ namespace KH2FML
         /// </summary>
         public static void CreateTASKMGR()
         {
-            var _taskActual = (long)Hypervisor.Read<ulong>(Variables.ADDR_TaskManager);
+            var _taskActual = Hypervisor.Read<ulong>(Variables.ADDR_TaskManager);
 
             if (_taskActual == 0x00)
             {
-                var _taskMGR = Hypervisor.MemoryOffset + (ulong)Variables.SharpHook[FUNC_CREATETASKMGR].ExecuteJMP<long>(BSharpConvention.MicrosoftX64, (long)(Hypervisor.PureAddress + 0x9A0730), 0x8000);
+                var _taskMGR = Variables.SharpHook[FUNC_CREATETASKMGR].ExecuteJMP<ulong>(BSharpConvention.MicrosoftX64, Hypervisor.PureAddress + 0x9A0730, 0x8000);
                 Hypervisor.Write(Variables.ADDR_TaskManager, _taskMGR);
             }
         }
@@ -43,24 +43,27 @@ namespace KH2FML
         }
 
         /// <summary>
-        /// Allocates memory for any purpose.
-        /// Do note that this allocation is reset on room transitions.
+        /// Allocates memory, then loads the given file.
         /// </summary>
-        /// <param name="Size">The size of memory to allocate.</param>
-        /// <returns>The location of allocated memory.</returns>
-        public static ulong AllocateMemory(int Size)
+        /// <param name="Input">Name of the file to load.</param>
+        /// <returns>Memory Address of the file if loaded, 0x00 if the load has failed.</returns>
+        public static ulong LoadFile(string Input)
         {
-            var _checkBuff = Hypervisor.Read<int>(0xBF33C0);
+            var _fileSize = GetFileSize(Input);
 
-            if (_checkBuff == 0x01524142)
-                return Hypervisor.MemoryOffset + (uint)Variables.SharpHook[FUNC_AREAALLOC].Execute<long>(Size);
+            if (Variables.MemoryKH[Input] == 0xDEADBEEF)
+            {
+                Variables.MemoryKH.Allocate(Input, _fileSize);
+
+                if (Variables.SharpHook[FUNC_FILEREAD].ExecuteJMP<int>(BSharpConvention.MicrosoftX64, Input, Variables.MemoryKH[Input]) > 0x00)
+                    return Variables.MemoryKH[Input];
+
+                else
+                    return 0;
+            }
 
             else
-            {
-                var _checkPoint = Hypervisor.Read<ulong>(0xBF33C0);
-                var _getMask = _checkPoint & 0xFFFF00000000;
-                return _getMask + (uint)Variables.SharpHook[FUNC_AREAALLOC].Execute<int>(Size);
-            }
+                return Variables.MemoryKH[Input];
         }
 
         /// <summary>
@@ -72,6 +75,28 @@ namespace KH2FML
         public static int GetFileSize(string Input) => Variables.SharpHook[FUNC_GETFILESIZE].Execute<int>(Input);
 
         /// <summary>
+        /// Inserts a memory region to the Cache Buffer to make use of later.
+        /// This does NOT load a file into said region, unless the region is permanent. This is for a good reason.
+        /// Care and attention is requested at all "Buffer" functions. It's delicate.
+        /// </summary>
+        /// <param name="Input">The filename of the region.</param>
+        /// <param name="Priority">Load priority. If this value is "-1", the region is permanent.</param>
+        /// <returns>"TRUE" if success, "FALSE" otherwise.</returns>
+        public static bool InsertToBuffer(string Input, int Priority = 1)
+        {
+            var _fileSize = GetFileSize(Input);
+
+            if (_fileSize > 0)
+            {
+                Variables.SharpHook[FUNC_CACHEREADREQ].Execute(BSharpConvention.MicrosoftX64, Input, Priority, _fileSize);
+                return true;
+            }
+
+            else
+                return false;
+        }
+
+        /// <summary>
         /// Gets the absolute memory location to a file descriptor in the Cache Buffer.
         /// Care and attention is requested at all "Buffer" functions. It's delicate.
         /// </summary>
@@ -79,26 +104,8 @@ namespace KH2FML
         /// <returns>The absolute memory location of the descriptor, "0x00" if not found.</returns>
         public static ulong FindFileBuffer(string Input)
         {
-            var _memoryOffset = Hypervisor.PureAddress & 0x7FFF00000000;
-            var _filePointer = Variables.SharpHook[FUNC_FINDFILE].Execute<uint>(BSharpConvention.MicrosoftX64, Input, -1);
-            return _filePointer == 0x00 ? 0x00 : _memoryOffset + _filePointer;
-        }
-
-        /// <summary>
-        /// Fetches the given Object ID from 00objentry.bin! This should mostly eliminate manual labor.
-        /// Could be a bit slow, optimization is advised when using this function.
-        /// </summary>
-        /// <param name="ObjectID">The ID of the Object as it is in 00objentry.bin</param>
-        /// <returns>The absolute memory location of the object in 00objentry.bin, "0x00" if not found.</returns>
-        public static ulong FetchObject(short ObjectID)
-        {
-            var _fetchObject = Variables.SharpHook[FUNC_OBJENTRYGET].Execute(ObjectID);
-
-            if (_fetchObject == IntPtr.Zero)
-                return 0x00;
-
-            else
-                return Hypervisor.MemoryOffset + (ulong)_fetchObject;
+            var _filePointer = Variables.SharpHook[FUNC_CACHEFIND].Execute<ulong>(BSharpConvention.MicrosoftX64, Input, -1);
+            return _filePointer;
         }
     }
 }
