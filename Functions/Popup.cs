@@ -9,6 +9,12 @@ namespace KH2FML
         public static nint FUNC_SHOWPRIZE;
         public static nint FUNC_SHOWINFORMATION;
 
+        public static ulong CAMP_OFFSET;
+        public static ulong CAMPINIT_OFFSET;
+
+        public static byte[] CAMP_FUNCTION;
+        public static byte[] CAMPINIT_FUNCTION;
+
         /// <summary>
         /// Activates a menu popup. Could be any of the "CAMP" style menus.
         /// Should not be used when a menu is already up, fucks shit up.
@@ -32,6 +38,11 @@ namespace KH2FML
             }
         }
 
+        public static void PopupInformation(ulong Address)
+        {
+            if (!Variables.IS_TITLE && Variables.IS_LOADED && !Variables.IS_CUTSCENE)
+                Variables.SharpHook[FUNC_SHOWINFORMATION].Execute(Address);
+        }
 
         /// <summary>
         /// Pops up a help image in the Camp Menu. Reminder that "00helpimage.bin" exists,
@@ -60,6 +71,12 @@ namespace KH2FML
                 var _pointString = Text.GetStringPointer(StringID);
                 Variables.SharpHook[FUNC_SHOWPRIZE].Execute(_pointString);
             }
+        }
+
+        public static void PopupPrize(ulong Address)
+        {
+            if (!Variables.IS_TITLE && Variables.IS_LOADED && !Variables.IS_CUTSCENE)
+                Variables.SharpHook[FUNC_SHOWPRIZE].Execute(Address);
         }
 
         public enum MENU : int

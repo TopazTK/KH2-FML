@@ -78,7 +78,7 @@ namespace KH2FML
             };
 
             if (Variables.MemoryKH["INTRO_MEMORY"] == 0xDEADBEEF)
-                Variables.MemoryKH.Allocate("INTRO_MEMORY", 0x200);
+                Variables.MemoryKH.Allocate("INTRO_MEMORY", 0x400);
 
             Children.CollectionChanged += Submit;
 
@@ -98,7 +98,7 @@ namespace KH2FML
             byte _lastIndex = (byte)(Children.Count - 1);
             var _menuOffset = (uint)(Variables.MemoryKH["INTRO_MEMORY"] - Hypervisor.PureAddress);
 
-            Hypervisor.Write(_menuOffset + 0x100, new byte[0x10]);
+            Hypervisor.Write(_menuOffset + 0x200, new byte[0x10]);
 
             Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x253, _menuOffset);
             Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x233, _menuOffset + 0x04);
@@ -120,14 +120,14 @@ namespace KH2FML
             Hypervisor.Write(Variables.HFIX_IntroOffsets[2] + 0x031, _lastIndex);
             Hypervisor.Write(Variables.HFIX_IntroOffsets[3] + 0x08E, _lastIndex);
 
-            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x3B5, _menuOffset + 0x100);
+            Hypervisor.Write(Variables.HFIX_IntroOffsets[0] + 0x3B5, _menuOffset + 0x200);
 
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0A8, _menuOffset + 0x100);
-            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[4] + 0x1F2, _menuOffset + 0x100);
-            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[5] + 0x2BF, _menuOffset + 0x100);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[1] + 0x0A8, _menuOffset + 0x200);
+            Hypervisor.RedirectLEA(Variables.HFIX_IntroOffsets[4] + 0x1F2, _menuOffset + 0x200);
+            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[5] + 0x2BF, _menuOffset + 0x200);
 
-            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[6] + 0x09, _menuOffset + 0x100);
-            Hypervisor.RedirectCMP(Variables.HFIX_IntroOffsets[6] + 0x17, _menuOffset + 0x104);
+            Hypervisor.RedirectMOV(Variables.HFIX_IntroOffsets[6] + 0x09, _menuOffset + 0x200);
+            Hypervisor.RedirectCMP(Variables.HFIX_IntroOffsets[6] + 0x17, _menuOffset + 0x204);
         }
     }
 }

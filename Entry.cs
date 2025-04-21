@@ -26,6 +26,11 @@ namespace KH2FML
                 Shisutemu.FUNC_GIVEBACKYARD = Hypervisor.FindSignature<IntPtr>("48 89 5C 24 10 48 89 6C 24 18 56 57 41 56 48 83 EC 20 4C 89 7C 24 40 8B D9 44 8B FA E8 ?? ?? ?? ??");
                 Shisutemu.FUNC_REDUCEBACKYARD = Hypervisor.FindSignature<IntPtr>("40 53 48 83 EC 20 8B DA E8 ?? ?? ?? ?? 48 8D 15 5C 4E 5E 00 F6 40 03 01 0F B7 48 12 0F B7 C9 74 22 8B C1 83 E1 1F 48 C1 E8 05 48 8D 14 82 B8 01 00 00 00 D3 E0 F7 D0 21 82 C0 36 00 00");
                 Shisutemu.FUNC_GETNUMBACKYARD = Hypervisor.FindSignature<IntPtr>("48 83 EC 28 E8 ?? ?? ?? ?? F6 40 03 01 74 2A 0F B7 48 12 8B C1 8B D1 48 C1 E8 05 48 8D 0D ?? ?? ?? ?? 83 E2 1F 8B 8C 81 C0 36 00 00");
+
+                Shisutemu.FUNC_ADDHP = Hypervisor.FindSignature<IntPtr>("48 89 5C 24 10 48 89 6C 24 18 56 48 83 EC 20 48 8B D9 49 63 F0 48 8B 89 C0 05 00 00 8B EA 48 85 C9 0F 84 DF 00 00 00");
+                Shisutemu.FUNC_INITIALIZESTATS = Hypervisor.FindSignature<IntPtr>("48 89 51 28 33 D2 48 89 11 48 89 51 08 48 89 51 10 48 89 51 18 89 51 20 88 51 24");
+                Shisutemu.FUNC_COMMITABILITIES = Hypervisor.FindSignature<IntPtr>("40 53 48 83 EC 20 48 8B 41 28 48 8B D9 48 89 6C 24 30 48 89 74 24 38 48 89 7C 24 40 8B 88 50 02 00 00 E8 ?? ?? ?? ??");
+                Shisutemu.FUNC_REGISTERWEAPONABILITY = Hypervisor.FindSignature<IntPtr>("85 D2 0F 84 52 01 00 00 53 48 83 EC 20 48 8B D9 8B CA E8 ?? ?? ?? ?? 48 8B C8 E8 ?? ?? ?? ??");
             });
 
             Terminal.Log("Locating all of the Visual Functions...", 1);
@@ -40,6 +45,15 @@ namespace KH2FML
                 Dialog.FUNC_SETCAMPWARNING = Hypervisor.FindSignature<IntPtr>("48 89 5C 24 08 57 48 83 EC 50 8B F9 8B DA");
                 Dialog.FUNC_SHOWCAMPWARNING = Hypervisor.FindSignature<IntPtr>("40 55 48 83 EC 50 44 8B 0D ?? ?? ?? ??");
                 Dialog.FUNC_FADECAMPWARNING = Hypervisor.FindSignature<IntPtr>("48 83 EC 28 85 C9 BA 0B 00 00 00 48 8B 0D ?? ?? ?? ?? B8 08 00 00 00 0F 44 D0 E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ??");
+
+                ulong _initOffset = Variables.PLATFORM == "STEAM" ? 0x517U : 0x4D7U;
+
+                Popup.CAMP_OFFSET = Hypervisor.FindSignature<ulong>("48 8B C4 48 81 EC 88 00 00 00 48 89 58 18 BA 02 00 00 00 48 89 68 F8 48 89 70 F0");
+                Popup.CAMP_FUNCTION = Hypervisor.Read<byte>(Popup.CAMP_OFFSET + 0x1A7, 0x07);
+
+                Popup.CAMPINIT_OFFSET = Hypervisor.FindSignature<ulong>("C3 CC CC CC CC CC CC CC CC 48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 48 89 7C 24 20 41 56 48 83 EC 40") + 0x09;
+                Popup.CAMPINIT_FUNCTION = Hypervisor.Read<byte>(Popup.CAMPINIT_OFFSET + _initOffset, 0x08);
+
             });
 
             Terminal.Log("Locating all of the I/O Functions...", 1);

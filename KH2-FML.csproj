@@ -1,9 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>KH2_FML</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+
+<PropertyGroup>
+	<TargetFramework>net48</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<LangVersion>latest</LangVersion>
+</PropertyGroup>
+
+<ItemGroup>
+  <PackageReference Include="System.Memory" Version="4.6.3" />
+</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BinarySharp\BinarySharp.csproj" />
+  </ItemGroup>
+
 </Project>

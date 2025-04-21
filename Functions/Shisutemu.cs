@@ -13,6 +13,31 @@ namespace KH2FML
         public static nint FUNC_ITEMPARAMGET;
         public static nint FUNC_REDUCEBACKYARD;
         public static nint FUNC_GETNUMBACKYARD;
+        public static nint FUNC_INITIALIZESTATS;
+        public static nint FUNC_COMMITABILITIES;
+        public static nint FUNC_GETSTATS;
+        public static nint FUNC_ADDHP;
+        public static nint FUNC_REGISTERWEAPONABILITY;
+
+        public static void RefreshSora()
+        {
+            var _soraStatline = Hypervisor.PureAddress + Variables.ADDR_PlayerStats;
+
+            var _formCheck = Hypervisor.Read<byte>(Variables.ADDR_SaveData + 0x3524);
+
+            var _mainKey = Hypervisor.Read<short>(Variables.ADDR_SaveData + 0x24F0);
+            var _formKey = Hypervisor.Read<short>(Variables.ADDR_SaveData + 0x32BCU + 0x38U * _formCheck);
+
+            Variables.SharpHook[FUNC_INITIALIZESTATS].ExecuteJMP(BSharpConvention.MicrosoftX64, _soraStatline + 0x1D0, _soraStatline);
+            Variables.SharpHook[FUNC_REGISTERWEAPONABILITY].ExecuteJMP(BSharpConvention.MicrosoftX64, _soraStatline, _mainKey);
+
+            if (_formCheck != 0x00)
+                Variables.SharpHook[FUNC_REGISTERWEAPONABILITY].ExecuteJMP(BSharpConvention.MicrosoftX64, _soraStatline, _formKey);
+
+            Variables.SharpHook[FUNC_COMMITABILITIES].Execute(_soraStatline + 0x1D0);
+        }
+
+        public static void AddHP(ulong Target, int Amount) => Variables.SharpHook[FUNC_ADDHP].ExecuteJMP(BSharpConvention.MicrosoftX64, Target, Amount, 0, 0);
 
         /// <summary>
         /// Gets the absolute memory location of a item in "03system.bin/ITEM"!
@@ -72,7 +97,7 @@ namespace KH2FML
         public static ulong FetchObject(short ObjectID)
         {
             var _fetchObject = Variables.SharpHook[FUNC_OBJENTRYGET].Execute<ulong>(ObjectID);
-            return _fetchObject != 0x00 ? _fetchObject : 0x00;
+            return _fetchObject;
         }
 
         /// <summary>

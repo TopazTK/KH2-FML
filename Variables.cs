@@ -1,10 +1,4 @@
 ﻿#define STEAM
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 using Binarysharp.MSharp;
 
@@ -12,6 +6,8 @@ namespace KH2FML
 {
     public class Variables
     {
+        public static string PLATFORM = "STEAM";
+
         public static MemorySharp SharpHook;
 
         public static ShopFace ShopFace;
@@ -151,6 +147,7 @@ namespace KH2FML
         public static ulong ADDR_CommandSEQD = 0x0A3AC00;
         public static ulong ADDR_CommandMenu = 0x05B16A8;
         public static ulong ADDR_CommandFlag = 0x071740C;
+        public static ulong ADDR_CommandType = 0x2A110D0;
         public static ulong ADDR_DialogSelect = 0x0902521;
         public static ulong ADDR_CutsceneMode = 0x0B65210;
         public static ulong ADDR_Framelimiter = 0x0ABAC08;
@@ -169,6 +166,8 @@ namespace KH2FML
         public static ulong DATA_EVTPath = 0x05B9020;
         public static ulong DATA_BTLPath = 0x05C5E48;
         public static ulong DATA_GMIPath = 0x05B5818;
+
+        public static ulong PINT_Sora = 0x2AE9A28;
         public static ulong PINT_Camp2LD = 0x09076D0;
         public static ulong PINT_GameOver = 0x0BEF4A8;
         public static ulong PINT_SystemMSG = 0x2A11678;
@@ -176,6 +175,7 @@ namespace KH2FML
         public static ulong PINT_EnemyInfo = 0x2A0CD70;
         public static ulong PINT_EventInfo = 0x2A11478;
         public static ulong PINT_ActionEXE = 0x2A161E8;
+        public static ulong PINT_SystemFile = 0x2AE5E50;
         public static ulong PINT_PartyLimit = 0x2A24CC0;
         public static ulong PINT_ConfigMenu = 0x0BF0150;
         public static ulong PINT_PlayerGauge = 0x0ABD248;
@@ -194,7 +194,6 @@ namespace KH2FML
         public static ulong ADDR_Confirm = 0x0714E02;
         public static ulong ADDR_LoadFlag = 0x09BA350;
         public static ulong ADDR_MenuFlag = 0x0900150;
-        public static ulong ADDR_PlayerHP = 0x2A23018;
         public static ulong ADDR_MenuType = 0x09001C4;
         public static ulong ADDR_SaveData = 0x09A9330;
         public static ulong ADDR_MagicLV1 = 0x09AC8C4;
@@ -213,9 +212,12 @@ namespace KH2FML
         public static ulong ADDR_BattleFlag = 0x2A10E84;
         public static ulong ADDR_FinishFlag = 0x0ABC0EC;
         public static ulong ADDR_MagicIndex = 0x2A101BC;
+        public static ulong ADDR_PlayerStats = 0x2A23018;
+        public static ulong ADDR_TaskManager = 0x0716828;
         public static ulong ADDR_CampBitwise = 0x0BEE6A0;
         public static ulong ADDR_Viewspace2D = 0x08A0BE8;
         public static ulong ADDR_Viewspace3D = 0x08A0BC0;
+        public static ulong ADDR_SubMenuFunc = 0x0BEE3CC;
         public static ulong ADDR_SubMenuType = 0x0743354;
         public static ulong ADDR_TitleSelect = 0x0B1D064;
         public static ulong ADDR_CommandMenu = 0x05B1868;
@@ -300,6 +302,7 @@ namespace KH2FML
             L_RIGHT = 0x40,
             L_UP = 0x80
         }
+
         public enum BUTTON : ushort
         {
             NONE = 0x0000,
@@ -319,6 +322,18 @@ namespace KH2FML
             RIGHT = 0x0020,
             DOWN = 0x0040,
             LEFT = 0x0080
+        }
+
+        public enum CAMP_BITWISE : byte
+        {
+            ITEMS = 0x01,
+            ABILITIES = 0x02,
+            CUSTOMIZE = 0x04,
+            PARTY = 0x08,
+            STATUS = 0x10,
+            JIMINY_JOURNAL = 0x20,
+            ROXAS_JOURNAL = 0x40,
+            CONFIG = 0x80
         }
         public enum CONFIG : ushort
         {

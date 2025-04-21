@@ -1,4 +1,5 @@
-﻿using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
+﻿using System.Text;
+using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
 
 namespace KH2FML
 {
@@ -40,6 +41,35 @@ namespace KH2FML
                 Variables.SharpHook[FUNC_FREETASKMGR].ExecuteJMP(BSharpConvention.MicrosoftX64, _taskActual);
                 Hypervisor.Write<ulong>(Variables.ADDR_TaskManager, 0x00);
             }
+        }
+
+        public static ulong FetchBARSubfile(ulong Input, string SubfileName, bool Absolute = false)
+        {
+            if (SubfileName.Length > 0x04)
+                return 0x00;
+
+            var _readMagic = Hypervisor.Read<uint>(Input, Absolute);
+
+            if (_readMagic != 0x01524142)
+                return 0x00;
+
+            var _readCount = Hypervisor.Read<uint>(Input + 0x04, Absolute);
+            var _readBase = Hypervisor.Read<uint>(Input + 0x08, Absolute);
+
+            for (uint i = 0; i < _readCount; i++)
+            {
+                var _readName = Hypervisor.Read<byte>(Input + 0x14 + (0x10 * i), 0x04, Absolute);
+                var _nameConvert = Encoding.Default.GetString(_readName);
+
+                if (_nameConvert == SubfileName)
+                {
+                    var _fileOffset = Hypervisor.Read<uint>(Input + 0x18 + (0x10 * i), Absolute);
+                    _fileOffset = _fileOffset - _readBase;
+                    return Absolute ? Input + _fileOffset : Hypervisor.PureAddress + Input + _fileOffset;
+                }
+            }
+
+            return 0x00;
         }
 
         /// <summary>

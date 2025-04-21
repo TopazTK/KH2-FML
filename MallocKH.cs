@@ -1,5 +1,4 @@
-﻿using static System.Reflection.Metadata.BlobBuilder;
-using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
+﻿using BSharpConvention = Binarysharp.MSharp.Assembly.CallingConvention.CallingConventions;
 
 namespace KH2FML
 {
@@ -42,7 +41,7 @@ namespace KH2FML
         /// </summary>
         /// <param name="Input">The address of the instance. Must be offsetted.</param>
         /// <param name="Size">The maximum memory size the allocater can use (in bytes). 0x10000 by default.</param>
-        public MallocKH(ulong Input, long Size = 0x100000)
+        public MallocKH(ulong Input, long Size = 0x10000)
         {
             _memoryBlock = new Dictionary<string, ulong>();
 
@@ -73,6 +72,7 @@ namespace KH2FML
                 else
                     _memoryBlock.Add(Input, _allocMemory);
 
+                Hypervisor.Write(_allocMemory, Size, true);
                 Terminal.Log("Allocated memory at 0x" + _allocMemory.ToString("X12") + " for \"" + Input + "\" successfully!", 0);
             }
         }
